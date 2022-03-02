@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
+import reactor.core.publisher.Flux;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +37,9 @@ class AnimalControllerTest {
 	@MockBean(answer = Answers.RETURNS_DEEP_STUBS)
 	private CfEnv cfEnv;
 
+	@MockBean
+	private AnimalService animalService;
+
 	private long currentAdoptionRequestCountForAnimalId1;
 
 	@BeforeEach
@@ -48,29 +53,30 @@ class AnimalControllerTest {
 
 	@Test
 	void getAllAnimals() {
+		Animal chocobo = new Animal();
+		Animal tiger = new Animal();
+		chocobo.setName("Chocobo");
+		tiger.setName("Tiger");
+
+		Mockito.when(animalService.getAllAnimalsAndAdoptions())
+			.thenReturn(Flux.just(chocobo, tiger));
+
 		webTestClient
 			.get()
 			.uri("/animals")
 			.exchange()
 			.expectStatus().isOk()
 			.expectBody()
-			.jsonPath("$.length()").isEqualTo(10)
-			.jsonPath("$[0].id").isEqualTo(1)
+			.jsonPath("$.length()").isEqualTo(2)
 			.jsonPath("$[0].name").isEqualTo("Chocobo")
-			.jsonPath("$[0].avatarUrl").isNotEmpty()
-			.jsonPath("$[0].description").isNotEmpty()
-			.jsonPath("$[0].rescueDate").isNotEmpty()
-			.jsonPath("$[0].adoptionRequests.length()").isEqualTo(currentAdoptionRequestCountForAnimalId1)
-			.jsonPath("$[0].adoptionRequests[0].adopterName").isNotEmpty()
-			.jsonPath("$[0].adoptionRequests[0].email").isNotEmpty()
-			.jsonPath("$[0].adoptionRequests[0].notes").isNotEmpty();
+			.jsonPath("$[1].name").isEqualTo("Tiger");
 	}
 
 	@Nested
 	class SubmitAdoptionRequest {
 
 		@Test
-		@WithMockUser(username = "test-user-1", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-1", authorities = {"adoption.request"})
 		void succeeds() {
 			String testEmail = "a@email.com";
 			String testNotes = "Yaaas!";
@@ -92,7 +98,7 @@ class AnimalControllerTest {
 		}
 
 		@Test
-		@WithMockUser(username = "test-user-1", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-1", authorities = {"adoption.request"})
 		void failsIfAnimalNotFound() {
 			String testEmail = "a@email.com";
 			String testNotes = "Yaaas!";
@@ -112,7 +118,7 @@ class AnimalControllerTest {
 	class EditAdoptionRequest {
 
 		@Test
-		@WithMockUser(username = "test-user-2", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-2", authorities = {"adoption.request"})
 		void succeeds() {
 			String testEmail = "b@email.com";
 			String testNotes = "Plzzzz!";
@@ -136,7 +142,7 @@ class AnimalControllerTest {
 		}
 
 		@Test
-		@WithMockUser(username = "test-user-2", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-2", authorities = {"adoption.request"})
 		void failsIfNotTheOriginalRequester() {
 			String testEmail = "a@email.com";
 			String testNotes = "Yaaas!";
@@ -152,7 +158,7 @@ class AnimalControllerTest {
 		}
 
 		@Test
-		@WithMockUser(username = "test-user-2", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-2", authorities = {"adoption.request"})
 		void failsIfAnimalNotFound() {
 			String testEmail = "a@email.com";
 			String testNotes = "Yaaas!";
@@ -168,7 +174,7 @@ class AnimalControllerTest {
 		}
 
 		@Test
-		@WithMockUser(username = "test-user-2", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-2", authorities = {"adoption.request"})
 		void failsIfAdoptionRequestNotFound() {
 			String testEmail = "a@email.com";
 			String testNotes = "Yaaas!";
@@ -188,7 +194,7 @@ class AnimalControllerTest {
 	class DeleteAdoptionRequest {
 
 		@Test
-		@WithMockUser(username = "test-user-3", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-3", authorities = {"adoption.request"})
 		void succeeds() {
 			adopt("dummy", "dummy");
 			long newId = getNewlyCreatedRequestId(1L, "test-user-3");
@@ -204,7 +210,7 @@ class AnimalControllerTest {
 		}
 
 		@Test
-		@WithMockUser(username = "test-user-3", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-3", authorities = {"adoption.request"})
 		void failsIfNotTheOriginalRequester() {
 			webTestClient
 				.delete()
@@ -214,7 +220,7 @@ class AnimalControllerTest {
 		}
 
 		@Test
-		@WithMockUser(username = "test-user-3", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-3", authorities = {"adoption.request"})
 		void failsIfAnimalNotFound() {
 			webTestClient
 				.delete()
@@ -224,7 +230,7 @@ class AnimalControllerTest {
 		}
 
 		@Test
-		@WithMockUser(username = "test-user-3", authorities = { "adoption.request" })
+		@WithMockUser(username = "test-user-3", authorities = {"adoption.request"})
 		void failsIfAdoptionRequestNotFound() {
 			webTestClient
 				.delete()
@@ -254,10 +260,10 @@ class AnimalControllerTest {
 
 	private long getNewlyCreatedRequestId(long animalId, String adopterName) {
 		return adoptionRequestRepository
-				.findByAnimal(animalId)
-				.filter(ar -> ar.getAdopterName().equals(adopterName))
-				.blockFirst()
-				.getId();
+			.findByAnimal(animalId)
+			.filter(ar -> ar.getAdopterName().equals(adopterName))
+			.blockFirst()
+			.getId();
 	}
 
 }

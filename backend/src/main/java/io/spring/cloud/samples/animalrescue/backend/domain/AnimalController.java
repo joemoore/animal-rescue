@@ -29,21 +29,18 @@ public class AnimalController {
 
 	private final AnimalRepository animalRepository;
 	private final AdoptionRequestRepository adoptionRequestRepository;
+	private final AnimalService animalService;
 
-	public AnimalController(AnimalRepository animalRepository, AdoptionRequestRepository adoptionRequestRepository) {
+	public AnimalController(AnimalRepository animalRepository, AdoptionRequestRepository adoptionRequestRepository, AnimalService animalService) {
 		this.animalRepository = animalRepository;
 		this.adoptionRequestRepository = adoptionRequestRepository;
+		this.animalService = animalService;
 	}
 
 	@GetMapping("/animals")
 	public Flux<Animal> getAllAnimals() {
 		LOGGER.info("Received get all animals request");
-		// This code is prioritized to be more readable and maintainable
-		// and causes the "N+1 selects problem". Take care of referring to the code.
-		return animalRepository.findAll()
-				.delayUntil(animal -> adoptionRequestRepository.findByAnimal(animal.getId())
-						.collect(Collectors.toSet())
-						.doOnNext(animal::setAdoptionRequests));
+		return animalService.getAllAnimalsAndAdoptions();
 	}
 
 	@PostMapping("/animals/{id}/adoption-requests")
