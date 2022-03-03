@@ -53,10 +53,8 @@ class AnimalControllerTest {
 
 	@Test
 	void getAllAnimals() {
-		Animal chocobo = new Animal();
-		Animal tiger = new Animal();
-		chocobo.setName("Chocobo");
-		tiger.setName("Tiger");
+		Animal chocobo = Animal.builder().id(1L).name("Chocobo").build();
+		Animal tiger = Animal.builder().id(2L).name("Tiger").build();
 
 		Mockito.when(animalService.getAllAnimalsAndAdoptions())
 			.thenReturn(Flux.just(chocobo, tiger));
@@ -68,7 +66,9 @@ class AnimalControllerTest {
 			.expectStatus().isOk()
 			.expectBody()
 			.jsonPath("$.length()").isEqualTo(2)
+			.jsonPath("$[0].id").isEqualTo("1")
 			.jsonPath("$[0].name").isEqualTo("Chocobo")
+			.jsonPath("$[1].id").isEqualTo("2")
 			.jsonPath("$[1].name").isEqualTo("Tiger");
 	}
 

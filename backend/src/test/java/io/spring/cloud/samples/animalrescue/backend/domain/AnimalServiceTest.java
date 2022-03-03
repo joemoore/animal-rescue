@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,15 +34,13 @@ class AnimalServiceTest {
 
 	@Test
 	void getAllAnimalsAndAdoptions() {
-		Animal kitty = new Animal();
+		Animal kitty = Animal.builder().id(1L).build();
 		AdoptionRequest adoptKitty = new AdoptionRequest();
-		kitty.setId(1L);
 		kitty.setAdoptionRequests(Sets.newSet(adoptKitty));
 
-		Animal boots = new Animal();
+		Animal boots = Animal.builder().id(2L).build();
 		AdoptionRequest adoptBoots1 = new AdoptionRequest();
 		AdoptionRequest adoptBoots2 = new AdoptionRequest();
-		boots.setId(2L);
 		kitty.setAdoptionRequests(Sets.newSet(adoptBoots1, adoptBoots2));
 
 		Flux<Animal> animals = Flux.just(kitty, boots);
