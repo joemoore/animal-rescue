@@ -40,7 +40,13 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
  	testImplementation("io.pivotal.cfenv:java-cfenv-test-support:2.1.1.RELEASE")
+
 	implementation('org.mockito:mockito-core:4.3.1')
+	compileOnly 'org.projectlombok:lombok:1.18.22'
+	annotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.22'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
 }
 
 test {

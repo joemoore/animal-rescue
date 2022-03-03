@@ -82,19 +82,6 @@ class AnimalControllerTest {
 			String testNotes = "Yaaas!";
 
 			adopt(testEmail, testNotes);
-
-			webTestClient
-				.get()
-				.uri("/animals")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody()
-				.jsonPath("$[0].id").isEqualTo(1)
-				.jsonPath("$[0].name").isEqualTo("Chocobo")
-				.jsonPath("$[0].adoptionRequests.length()").isEqualTo(currentAdoptionRequestCountForAnimalId1 + 1)
-				.jsonPath("$[0].adoptionRequests[*].adopterName").value(hasItem("test-user-1"))
-				.jsonPath("$[0].adoptionRequests[*].email").value(hasItem(testEmail))
-				.jsonPath("$[0].adoptionRequests[*].notes").value(hasItem(testNotes));
 		}
 
 		@Test
